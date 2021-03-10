@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    'openexr-sys',
+    'openexr-core',
+    'openexr-viewer',
+]

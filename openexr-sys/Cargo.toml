@@ -1,0 +1,13 @@
+[package]
+name = "openexr-sys"
+version = "0.1.0"
+authors = ["a <a@a.com>"]
+edition = "2018"
+build = "build.rs"
+
+[lib]
+name = "openexr_sys"
+path = "src/lib.rs"
+
+[build-dependencies]
+bindgen = "0.56.0"
