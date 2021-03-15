@@ -1,36 +1,64 @@
-// #![allow(non_upper_case_globals)]
+use openexr_sys as sys;
+
+pub use sys::Error;
+type Result<T, E = Error> = std::result::Result<T, E>;
 
 use std::ffi::CString;
 
-use crate::ExrError;
-use openexr_sys::*;
+use crate::File;
 
-pub struct ExrFile {
-    pub(crate) file: *mut exr_file_t,
+/// Reader is a File opened for reading by start_read(). It is safe to call
+/// any methods on Reader concurrently.
+pub struct Reader {
+    file: *const sys::exr_file_t,
 }
 
-impl Drop for ExrFile {
-    fn drop(&mut self) {
-        unsafe {
-            exr_close(&mut self.file);
+unsafe impl Send for Reader {}
+unsafe impl Sync for Reader {}
 
-            self.file = std::ptr::null::<exr_file_t>() as *mut exr_file_t;
-        }
+impl File for Reader {
+    fn inner(&self) -> *const sys::exr_file_t {
+        self.file
     }
 }
 
-pub fn open_file(path: &str) -> Result<ExrFile, ExrError> {
+pub fn start_read(filename: &str) -> Result<Reader> {
+    let filename = CString::new(filename).unwrap();
+    let mut file = std::ptr::null_mut();
     unsafe {
-        let c_path = CString::new(path)?;
+        sys::exr_ERROR_CODES_t(sys::exr_start_read(
+            &mut file,
+            filename.as_ptr(),
+            None,
+        ) as u32)
+        .ok(Reader { file })
+    }
+}
 
-        let mut file: *mut exr_file_t = std::ptr::null::<exr_file_t>() as *mut exr_file_t;
+impl Drop for Reader {
+    fn drop(&mut self) {
+        let _ = unsafe { sys::exr_close(self.inner() as *mut _) };
+    }
+}
 
-        let result = exr_start_read((&mut file) as *mut *mut exr_file_t, c_path.as_ptr(), None);
+pub struct Writer {
+    file: *mut sys::exr_file_t,
+}
 
-        if result != 0 {
-            todo!();
-        }
+impl File for Writer {
+    fn inner(&self) -> *const sys::exr_file_t {
+        self.file
+    }
+}
 
-        Ok(ExrFile { file })
+impl Writer {
+    pub(crate) fn inner_mut(&mut self) -> *mut sys::exr_file_t {
+        self.file
+    }
+}
+
+impl Drop for Writer {
+    fn drop(&mut self) {
+        let _ = unsafe { sys::exr_close(self.inner_mut() as *mut _) };
     }
 }
