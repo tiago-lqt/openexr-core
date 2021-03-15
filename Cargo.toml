@@ -2,5 +2,5 @@
 members = [
     'openexr-sys',
     'openexr-core',
-    'openexr-viewer',
+    # 'openexr-viewer',
 ]

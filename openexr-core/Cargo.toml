@@ -11,3 +11,6 @@ openexr-sys = { path = "../openexr-sys" }
 semver = "0.11.0"
 mint = "0.5.6"
 anyhow = "1.0.38"
+cfg-if = "1.0.0"
+cgmath = { version = "0.17", optional = true }
+nalgebra-glm = {version = "0.8.0", optional = true }
